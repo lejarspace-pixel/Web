@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101225">
+<title>FotoKode — Berbagi Foto</title>
+<style>
+:root{color-scheme:dark;--bg:#0d1020;--card:#171b30;--line:#2b3150;--text:#f5f6ff;--muted:#a6acc8;--a:#8b7cff;--b:#48d7d0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 500px at 0% -10%,#28245a 0%,transparent 60%),radial-gradient(700px 450px at 100% 0%,#123d4a 0%,transparent 55%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{max-width:850px;margin:auto;padding:22px 16px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px}.brand{font-weight:850;font-size:23px;letter-spacing:-.7px}.brand span{color:var(--b)}.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+h1{font-size:clamp(29px,6vw,44px);line-height:1.08;letter-spacing:-1.3px;margin:8px 0 12px}h1 em{font-style:normal;color:var(--b)}.sub{color:var(--muted);margin:0 0 25px;max-width:600px}
+.grid{display:grid;grid-template-columns:1fr;gap:16px}.card{background:linear-gradient(145deg,rgba(29,34,58,.96),rgba(19,22,39,.96));border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 16px 40px #0002}.card h2{font-size:18px;margin:0 0 13px}.label{display:block;font-size:13px;color:var(--muted);margin:12px 0 7px}
+input[type=text],input[type=search],textarea{width:100%;background:#0e1224;color:var(--text);border:1px solid #343b5c;border-radius:12px;padding:13px 14px;font:inherit;outline:none}textarea{resize:vertical;min-height:86px}input:focus,textarea:focus{border-color:var(--a);box-shadow:0 0 0 3px #8b7cff22}input[type=file]{width:100%;padding:12px;border:1px dashed #4b5278;border-radius:12px;color:var(--muted);background:#0e1224}
+button,.btn{border:0;border-radius:12px;padding:12px 16px;font:700 14px system-ui;cursor:pointer;background:linear-gradient(100deg,var(--a),#6a9cff);color:white}.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.secondary{background:#252b45;border:1px solid #3a4264}.hint{font-size:12px;color:var(--muted);margin:9px 0 0}.status{font-size:13px;margin-top:12px;color:var(--b);overflow-wrap:anywhere}.status.error{color:#ff9baf}
+.searchrow{display:flex;gap:9px}.searchrow input{min-width:0}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:17px}.photo{overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#171b30}.photo img{width:100%;max-height:430px;object-fit:contain;display:block;background:#090b15}.photo-body{padding:14px}.caption{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 12px}.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted);font-size:12px}.code{font-weight:850;color:var(--b);background:#143b40;border-radius:8px;padding:5px 9px}.empty{color:var(--muted);padding:20px 0;text-align:center}.hidden{display:none!important}.foot{color:var(--muted);font-size:12px;margin:23px 4px 0}.foot a{color:#b7b0ff}
+@media(min-width:700px){.grid{grid-template-columns:1fr 1fr}.wrap{padding-top:30px}.card{padding:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="brand">Foto<span>Kode</span></div><div class="tag">Berbagi foto publik</div></header>
+  <h1>Foto punya cerita.<br><em>Bagikan pakai kode.</em></h1>
+  <p class="sub">Unggah foto, tulis caption, lalu temukan kembali dengan kode seperti <b>#1</b>. Foto yang diposting bersifat publik dan dapat dilihat siapa saja.</p>
+
+  <div class="grid">
+    <section class="card">
+      <h2>＋ Unggah foto</h2>
+      <label class="label" for="image">Pilih foto dari galeri</label>
+      <input id="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+      <label class="label" for="caption">Caption foto</label>
+      <textarea id="caption" maxlength="500" placeholder="Tulis caption foto kamu... (maks. 500 karakter)"></textarea>
+      <div class="btnrow"><button id="uploadBtn">Unggah foto</button><button class="secondary" id="clearBtn" type="button">Bersihkan</button></div>
+      <p class="hint">Format JPG, PNG, WEBP, atau GIF. Maksimal 5 MB per foto.</p>
+      <div id="uploadStatus" class="status" role="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>⌕ Cari foto berdasarkan kode</h2>
+      <form id="searchForm">
+        <label class="label" for="codeInput">Kode foto</label>
+        <div class="searchrow"><input id="codeInput" type="search" placeholder="Contoh: #1 atau 1" autocomplete="off"><button type="submit">Cari</button></div>
+      </form>
+      <div class="btnrow"><button class="secondary" id="showAllBtn" type="button">Lihat foto terbaru</button></div>
+      <p class="hint">Kode akan dibuat otomatis berdasarkan nomor foto di database.</p>
+      <div id="searchStatus" class="status" role="status"></div>
+    </section>
+  </div>
+
+  <div id="results" class="results"></div>
+  <div id="empty" class="empty">Hubungkan database online, lalu foto publik akan muncul di sini.</div>
+  <p class="foot">Jangan unggah foto pribadi, alamat, kartu identitas, atau foto orang lain tanpa izin. Pemilik website perlu mengatur aturan unggah dan moderasi untuk mencegah spam.</p>
+</div>
+
+<!-- Isi URL dan publishable/anon key dari project Supabase milikmu di bawah ini. Jangan pernah memasukkan service_role/secret key ke file website. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "TEMPEL_PROJECT_URL_DI_SINI";
+const SUPABASE_KEY = "TEMPEL_PUBLISHABLE_KEY_DI_SINI";
+const BUCKET = "photos";
+const TABLE = "photos";
+
+const $ = (id) => document.getElementById(id);
+const results = $("results"), empty = $("empty");
+let db = null;
+
+function connect() {
+  if (!window.supabase) throw new Error("Library Supabase gagal dimuat. Periksa koneksi internet.");
+  if (SUPABASE_URL.includes("TEMPEL_") || SUPABASE_KEY.includes("TEMPEL_")) {
+    throw new Error("Website belum disambungkan. Isi SUPABASE_URL dan SUPABASE_KEY di bagian akhir kode.");
+  }
+  if (!db) db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  return db;
+}
+function setStatus(id, message, error=false) {
+  const el=$(id); el.textContent=message; el.classList.toggle("error",error);
+}
+function niceDate(value) {
+  try { return new Date(value).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short"}); }
+  catch { return ""; }
+}
+function makeCard(row) {
+  const article=document.createElement("article"); article.className="photo";
+  const img=document.createElement("img"); img.src=row.image_url; img.alt="Foto dengan kode #"+row.id; img.loading="lazy";
+  img.onerror=()=>{img.alt="Foto gagal dimuat";};
+  const body=document.createElement("div"); body.className="photo-body";
+  const cap=document.createElement("p"); cap.className="caption"; cap.textContent=row.caption || "Tanpa caption";
+  const meta=document.createElement("div"); meta.className="meta";
+  const date=document.createElement("span"); date.textContent=niceDate(row.created_at);
+  const code=document.createElement("span"); code.className="code"; code.textContent="#"+row.id;
+  const copy=document.createElement("button"); copy.className="secondary"; copy.textContent="Salin kode"; copy.type="button";
+  copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText("#"+row.id);copy.textContent="Tersalin!";}catch{prompt("Salin kode ini:","#"+row.id);}});
+  meta.append(date,code); body.append(cap,meta,document.createElement("div")); body.lastChild.className="btnrow"; body.lastChild.append(copy);
+  article.append(img,body); return article;
+}
+function render(rows) {
+  results.replaceChildren();
+  rows.forEach(row=>results.append(makeCard(row)));
+  empty.classList.toggle("hidden",rows.length>0);
+  if(!rows.length) empty.textContent="Belum ada foto yang ditemukan.";
+}
+async function loadLatest() {
+  setStatus("searchStatus","Memuat foto...");
+  try {
+    const client=connect();
+    const {data,error}=await client.from(TABLE).select("id,caption,image_url,created_at").order("id",{ascending:false}).limit(30);
+    if(error) throw error;
+    render(data||[]); setStatus("searchStatus",(data||[]).length+" foto terbaru ditampilkan.");
+  } catch(e) { render([]); setStatus("searchStatus",e.message||"Gagal memuat foto.",true); }
+}
+$("uploadBtn").addEventListener("click",async()=>{
+  const file=$("image").files[0], caption=$("caption").value.trim();
+  if(!file){setStatus("uploadStatus","Pilih foto terlebih dahulu.",true);return;}
+  if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)){setStatus("uploadStatus","Gunakan file JPG, PNG, WEBP, atau GIF.",true);return;}
+  if(file.size>5*1024*1024){setStatus("uploadStatus","Ukuran foto maksimal 5 MB.",true);return;}
+  const button=$("uploadBtn"); button.disabled=true; button.textContent="Mengunggah...";
+  try {
+    const client=connect();
+    const ext=({ "image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif"})[file.type]||"img";
+    const path=Date.now()+"-"+crypto.randomUUID()+"."+ext;
+    const {error:uploadError}=await client.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+    if(uploadError) throw uploadError;
+    const {data:urlData}=client.storage.from(BUCKET).getPublicUrl(path);
+    const {data:row,error:dbError}=await client.from(TABLE).insert({caption,image_url:urlData.publicUrl}).select("id,caption,image_url,created_at").single();
+    if(dbError) throw dbError;
+    $("image").value=""; $("caption").value="";
+    setStatus("uploadStatus","Berhasil! Kode foto kamu: #"+row.id);
+    render([row,...Array.from(results.children).map(()=>null).filter(Boolean)]);
+    await loadLatest();
+  } catch(e) { setStatus("uploadStatus",e.message||"Upload gagal. Periksa pengaturan database.",true); }
+  finally {button.disabled=false;button.textContent="Unggah foto";}
+});
+$("clearBtn").addEventListener("click",()=>{$("image").value="";$("caption").value="";setStatus("uploadStatus","");});
+$("searchForm").addEventListener("submit",async(e)=>{
+  e.preventDefault(); const raw=$("codeInput").value.trim().replace(/^#/,"");
+  if(!/^\d+$/.test(raw)){setStatus("searchStatus","Masukkan kode angka, misalnya #1.",true);return;}
+  setStatus("searchStatus","Mencari foto...");
+  try{
+    const client=connect();
+    const {data,error}=await client.from(TABLE).select("id,caption,image_url,created_at").eq("id",Number(raw)).maybeSingle();
+    if(error)throw error;
+    render(data?[data]:[]); setStatus("searchStatus",data?"Foto dengan kode #"+data.id+" ditemukan.":"Kode #"+raw+" belum ditemukan.",!data);
+  }catch(e){setStatus("searchStatus",e.message||"Pencarian gagal.",true);}
+});
+$("showAllBtn").addEventListener("click",loadLatest);
+loadLatest();
+</script>
+</body>
+</html>
